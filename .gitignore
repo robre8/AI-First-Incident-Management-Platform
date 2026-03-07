@@ -1,0 +1,20 @@
+# Build outputs
+bin/
+obj/
+
+# IDE and editor
+.vscode/
+.vs/
+*.user
+
+# Environment and secrets
+.env
+src/IncidentPlatform.API/appsettings.Development.json
+
+# NuGet packages
+*.nupkg
+packages/
+
+# OS files
+.DS_Store
+Thumbs.db

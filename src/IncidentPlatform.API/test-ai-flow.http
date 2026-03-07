@@ -1,0 +1,50 @@
+### 1. Create Incident
+POST http://localhost:5116/api/incident
+Content-Type: application/json
+
+{
+  "title": "Production API timeout",
+  "description": "Users report 504 errors during checkout"
+}
+
+### 2. Get All Incidents (to grab the GUID)
+GET http://localhost:5116/api/incident
+
+### 3. Add Log Entry #1
+# Replace {{GUID}} with the incident ID from step 1
+POST http://localhost:5116/api/incidents/{{GUID}}/logs
+Content-Type: application/json
+
+{
+  "service": "checkout-api",
+  "logLevel": "Error",
+  "message": "Database timeout while processing payment"
+}
+
+### 4. Add Log Entry #2
+POST http://localhost:5116/api/incidents/{{GUID}}/logs
+Content-Type: application/json
+
+{
+  "service": "checkout-api",
+  "logLevel": "Critical",
+  "message": "Primary database unavailable"
+}
+
+### 5. Get Logs for Incident
+GET http://localhost:5116/api/incidents/{{GUID}}/logs
+
+### 6. Analyze with AI
+POST http://localhost:5116/api/ai/analyze/{{GUID}}
+
+### Expected Result:
+# {
+#   "severity": "Critical",
+#   "rootCause": "Possible issue detected from logs related to 'Production API timeout'.",
+#   "suggestedFix": "Review failing dependencies, inspect recent deployments, and increase automated test coverage around the affected flow.",
+#   "recommendedTests": [
+#     "Add unit tests for the affected service method.",
+#     "Add integration tests for the failing workflow.",
+#     "Add regression tests covering the reported incident scenario."
+#   ]
+# }
