@@ -10,7 +10,11 @@ publish/
 
 # Environment and secrets — NEVER commit real credentials
 .env
-.env.*
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+# NOTE: .env.example files ARE committed (safe templates, no real values)
 appsettings.Development.json
 appsettings.Production.json
 appsettings.Staging.json

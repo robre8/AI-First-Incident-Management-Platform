@@ -29,6 +29,18 @@ builder.Services.AddScoped<ILogService, LogService>();
 builder.Services.AddScoped<IAIAnalysisService, AIAnalysisService>();
 builder.Services.AddScoped<IAwsFileService, AwsFileService>();
 
+var allowedOrigins = builder.Configuration
+    .GetSection("AllowedOrigins")
+    .Get<string[]>() ?? ["http://localhost:3000"];
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("FrontendPolicy", policy =>
+        policy.WithOrigins(allowedOrigins)
+              .AllowAnyHeader()
+              .AllowAnyMethod());
+});
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -50,6 +62,7 @@ if (!app.Environment.IsProduction())
     app.UseHttpsRedirection();
 }
 
+app.UseCors("FrontendPolicy");
 app.MapGet("/", () => "AI Incident Platform API is running.");
 app.MapControllers();
 app.Run();

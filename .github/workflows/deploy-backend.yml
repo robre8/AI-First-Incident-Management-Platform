@@ -1,0 +1,67 @@
+name: Deploy Backend to AWS Elastic Beanstalk
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - '.github/workflows/deploy-backend.yml'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0'
+
+      - name: Publish self-contained (linux-x64)
+        run: |
+          dotnet publish src/IncidentPlatform.API \
+            -c Release \
+            -r linux-x64 \
+            --self-contained true \
+            -o publish
+
+      - name: Create Procfile
+        run: echo "web: ./IncidentPlatform.API" > publish/Procfile
+
+      - name: Create deployment ZIP
+        run: cd publish && zip -r ../deploy.zip .
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.EB_REGION }}
+
+      - name: Upload ZIP to S3
+        run: |
+          VERSION="v${{ github.run_number }}-$(echo ${{ github.sha }} | cut -c1-7)"
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+          aws s3 cp deploy.zip s3://${{ secrets.EB_S3_BUCKET }}/${VERSION}.zip
+
+      - name: Create Elastic Beanstalk application version
+        run: |
+          aws elasticbeanstalk create-application-version \
+            --application-name "${{ secrets.EB_APP_NAME }}" \
+            --version-label "${{ env.VERSION }}" \
+            --source-bundle S3Bucket="${{ secrets.EB_S3_BUCKET }}",S3Key="${{ env.VERSION }}.zip"
+
+      - name: Deploy to Elastic Beanstalk environment
+        run: |
+          aws elasticbeanstalk update-environment \
+            --environment-name "${{ secrets.EB_ENV_NAME }}" \
+            --version-label "${{ env.VERSION }}"
+
+      - name: Wait for deployment to finish
+        run: |
+          aws elasticbeanstalk wait environment-updated \
+            --environment-names "${{ secrets.EB_ENV_NAME }}"
+          echo "✅ Deployment complete: ${{ env.VERSION }}"
