@@ -3,6 +3,10 @@ bin/
 obj/
 publish/
 
+# Logs
+*.log
+backend-run.log
+
 # IDE and editor
 .vscode/
 .vs/
