@@ -37,14 +37,23 @@ export default function AttachmentUpload({ onUpload }) {
       <h2 className="mb-4 text-lg font-semibold">Attachments</h2>
 
       <form onSubmit={handleSubmit} className="space-y-3">
-        <input
-          type="file"
-          onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-          className="block w-full text-sm"
-        />
-        {file && (
-          <p className="text-xs text-slate-500">Selected: {file.name}</p>
-        )}
+        <div className="flex flex-wrap items-center gap-3">
+          <input
+            id="attachment-file"
+            type="file"
+            onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+            className="hidden"
+          />
+          <label
+            htmlFor="attachment-file"
+            className="cursor-pointer rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+          >
+            Choose File
+          </label>
+          <span className="text-sm text-slate-500">
+            {file ? file.name : "No file selected"}
+          </span>
+        </div>
 
         <button
           type="submit"
