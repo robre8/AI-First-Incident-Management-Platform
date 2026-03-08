@@ -4,17 +4,21 @@ export default function AttachmentUpload({ onUpload }) {
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
+  const [error, setError] = useState(null);
 
   async function handleSubmit(e) {
     e.preventDefault();
     if (!file) return;
 
     setLoading(true);
+    setError(null);
     try {
       const data = await onUpload(file);
       setResult(data);
       setFile(null);
       e.target.reset();
+    } catch {
+      setError("Upload failed. Try again.");
     } finally {
       setLoading(false);
     }
@@ -30,15 +34,24 @@ export default function AttachmentUpload({ onUpload }) {
           onChange={(e) => setFile(e.target.files?.[0] ?? null)}
           className="block w-full text-sm"
         />
+        {file && (
+          <p className="text-xs text-slate-500">Selected: {file.name}</p>
+        )}
 
         <button
           type="submit"
           disabled={!file || loading}
-          className="rounded-lg bg-slate-900 px-4 py-2 text-white disabled:opacity-50"
+          className="rounded-lg bg-slate-900 px-4 py-2 text-white disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-700"
         >
           {loading ? "Uploading..." : "Upload File"}
         </button>
       </form>
+
+      {error && (
+        <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+          {error}
+        </div>
+      )}
 
       {result && (
         <div className="mt-4 rounded-lg bg-slate-50 p-3 text-sm">

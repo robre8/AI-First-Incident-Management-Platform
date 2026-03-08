@@ -2,11 +2,13 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import {
   analyzeIncident,
+  createLog,
   getIncidentById,
   getLogsByIncident,
   uploadAttachment,
 } from "../api/incidents";
 import LogList from "../components/LogList";
+import LogForm from "../components/LogForm";
 import AttachmentUpload from "../components/AttachmentUpload";
 import AIAnalysisPanel from "../components/AIAnalysisPanel";
 
@@ -20,23 +22,32 @@ export default function IncidentDetailPage() {
   const [analysisError, setAnalysisError] = useState(null);
   const [loadingAnalysis, setLoadingAnalysis] = useState(false);
 
+  async function loadLogs() {
+    try {
+      const logsData = await getLogsByIncident(id);
+      setLogs(logsData);
+      setLogsError(null);
+    } catch {
+      setLogs([]);
+      setLogsError("Logs are temporarily unavailable.");
+    }
+  }
+
   useEffect(() => {
     async function load() {
       const incidentData = await getIncidentById(id);
       setIncident(incidentData);
 
-      try {
-        const logsData = await getLogsByIncident(id);
-        setLogs(logsData);
-        setLogsError(null);
-      } catch {
-        setLogs([]);
-        setLogsError("Logs are temporarily unavailable.");
-      }
+      await loadLogs();
     }
 
     load();
   }, [id]);
+
+  async function handleCreateLog(payload) {
+    await createLog(id, payload);
+    await loadLogs();
+  }
 
   async function handleAnalyze() {
     setLoadingAnalysis(true);
@@ -74,6 +85,7 @@ export default function IncidentDetailPage() {
               {logsError}
             </div>
           )}
+          <LogForm onSubmit={handleCreateLog} />
           <LogList logs={logs} />
         </div>
         <AttachmentUpload onUpload={handleUpload} />
