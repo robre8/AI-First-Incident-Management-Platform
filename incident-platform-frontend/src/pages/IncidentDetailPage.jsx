@@ -17,6 +17,7 @@ export default function IncidentDetailPage() {
   const [logs, setLogs] = useState([]);
   const [logsError, setLogsError] = useState(null);
   const [analysis, setAnalysis] = useState(null);
+  const [analysisError, setAnalysisError] = useState(null);
   const [loadingAnalysis, setLoadingAnalysis] = useState(false);
 
   useEffect(() => {
@@ -39,9 +40,12 @@ export default function IncidentDetailPage() {
 
   async function handleAnalyze() {
     setLoadingAnalysis(true);
+    setAnalysisError(null);
     try {
       const data = await analyzeIncident(id);
       setAnalysis(data);
+    } catch {
+      setAnalysisError("AI analysis is temporarily unavailable.");
     } finally {
       setLoadingAnalysis(false);
     }
@@ -80,6 +84,11 @@ export default function IncidentDetailPage() {
         loading={loadingAnalysis}
         onAnalyze={handleAnalyze}
       />
+      {analysisError && (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+          {analysisError}
+        </div>
+      )}
     </div>
   );
 }

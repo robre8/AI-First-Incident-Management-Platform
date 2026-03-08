@@ -24,14 +24,34 @@ public class AIController : ControllerBase
     [HttpPost("analyze/{incidentId:guid}")]
     public async Task<IActionResult> Analyze(Guid incidentId)
     {
-        var incident = await _incidentService.GetIncidentByIdAsync(incidentId);
+        try
+        {
+            var incident = await _incidentService.GetIncidentByIdAsync(incidentId);
 
-        if (incident == null)
-            return NotFound($"Incident {incidentId} not found.");
+            if (incident == null)
+                return NotFound($"Incident {incidentId} not found.");
 
-        var logs = await _logService.GetLogsByIncidentIdAsync(incidentId);
-        var result = await _aiService.AnalyzeIncidentAsync(incident, logs);
+            List<Domain.Entities.LogEntry> logs = [];
+            try
+            {
+                logs = await _logService.GetLogsByIncidentIdAsync(incidentId);
+            }
+            catch
+            {
+                // Keep AI analysis available even if Mongo logs are temporarily down.
+                logs = [];
+            }
 
-        return Ok(result);
+            var result = await _aiService.AnalyzeIncidentAsync(incident, logs);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(StatusCodes.Status503ServiceUnavailable, new
+            {
+                error = "AI analysis service unavailable",
+                detail = ex.Message
+            });
+        }
     }
 }
