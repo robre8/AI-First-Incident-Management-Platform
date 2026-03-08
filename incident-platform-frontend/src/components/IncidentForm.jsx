@@ -3,12 +3,14 @@ import { useState } from "react";
 export default function IncidentForm({ onSubmit, loading }) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [status, setStatus] = useState("Open");
 
   async function handleSubmit(e) {
     e.preventDefault();
-    await onSubmit({ title, description });
+    await onSubmit({ title, description, status });
     setTitle("");
     setDescription("");
+    setStatus("Open");
   }
 
   return (
@@ -37,6 +39,20 @@ export default function IncidentForm({ onSubmit, loading }) {
           rows={4}
           required
         />
+      </div>
+
+      <div className="mb-4">
+        <label className="mb-1 block text-sm font-medium">Status</label>
+        <select
+          className="w-full rounded-lg border px-3 py-2"
+          value={status}
+          onChange={(e) => setStatus(e.target.value)}
+        >
+          <option value="Open">Open</option>
+          <option value="In Progress">In Progress</option>
+          <option value="Resolved">Resolved</option>
+          <option value="Closed">Closed</option>
+        </select>
       </div>
 
       <button

@@ -15,6 +15,11 @@ export async function createIncident(payload) {
   return res.data;
 }
 
+export async function updateIncident(id, payload) {
+  const res = await api.put(`/api/incident/${id}`, payload);
+  return res.data;
+}
+
 export async function getLogsByIncident(id) {
   const res = await api.get(`/api/incidents/${id}/logs`);
   return res.data;

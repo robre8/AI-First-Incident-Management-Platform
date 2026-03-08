@@ -6,6 +6,13 @@ namespace IncidentPlatform.Application.Services;
 public class IncidentService : IIncidentService
 {
     private readonly IIncidentRepository _repo;
+    private static readonly HashSet<string> AllowedStatuses =
+    [
+        "Open",
+        "In Progress",
+        "Resolved",
+        "Closed"
+    ];
 
     public IncidentService(IIncidentRepository repo) => _repo = repo;
 
@@ -15,7 +22,8 @@ public class IncidentService : IIncidentService
         {
             Id = Guid.NewGuid(),
             Title = dto.Title,
-            Description = dto.Description
+            Description = dto.Description,
+            Status = NormalizeStatus(dto.Status, "Open")
         };
         await _repo.AddAsync(incident);
         return incident;
@@ -34,9 +42,20 @@ public class IncidentService : IIncidentService
 
         incident.Title = dto.Title;
         incident.Description = dto.Description;
+        incident.Status = NormalizeStatus(dto.Status, incident.Status);
 
         await _repo.UpdateAsync(incident);
         return incident;
+    }
+
+    private static string NormalizeStatus(string? status, string fallback)
+    {
+        if (string.IsNullOrWhiteSpace(status))
+            return fallback;
+
+        var trimmed = status.Trim();
+
+        return AllowedStatuses.Contains(trimmed) ? trimmed : fallback;
     }
 
     public async Task<bool> DeleteIncidentAsync(Guid id)

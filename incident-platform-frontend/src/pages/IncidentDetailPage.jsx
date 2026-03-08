@@ -5,6 +5,7 @@ import {
   createLog,
   getIncidentById,
   getLogsByIncident,
+  updateIncident,
   uploadAttachment,
 } from "../api/incidents";
 import LogList from "../components/LogList";
@@ -22,6 +23,8 @@ export default function IncidentDetailPage() {
   const [analysis, setAnalysis] = useState(null);
   const [analysisError, setAnalysisError] = useState(null);
   const [loadingAnalysis, setLoadingAnalysis] = useState(false);
+  const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [statusMessage, setStatusMessage] = useState(null);
 
   async function loadLogs() {
     setLoadingLogs(true);
@@ -55,6 +58,26 @@ export default function IncidentDetailPage() {
     loadLogs();
   }
 
+  async function handleSaveStatus() {
+    if (!incident) return;
+
+    setUpdatingStatus(true);
+    setStatusMessage(null);
+    try {
+      const updated = await updateIncident(id, {
+        title: incident.title,
+        description: incident.description,
+        status: incident.status,
+      });
+      setIncident(updated);
+      setStatusMessage("Status updated.");
+    } catch {
+      setStatusMessage("Failed to update status.");
+    } finally {
+      setUpdatingStatus(false);
+    }
+  }
+
   async function handleAnalyze() {
     setLoadingAnalysis(true);
     setAnalysisError(null);
@@ -81,6 +104,37 @@ export default function IncidentDetailPage() {
       <div className="rounded-xl border bg-white p-6 shadow-sm">
         <h1 className="text-3xl font-bold">{incident.title}</h1>
         <p className="mt-2 text-slate-600">{incident.description}</p>
+
+        <div className="mt-4 flex flex-wrap items-center gap-3">
+          <label className="text-sm font-medium text-slate-700">Status</label>
+          <select
+            value={incident.status ?? "Open"}
+            onChange={(e) =>
+              setIncident((prev) => ({
+                ...prev,
+                status: e.target.value,
+              }))
+            }
+            className="rounded-lg border px-3 py-2 text-sm"
+          >
+            <option value="Open">Open</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Resolved">Resolved</option>
+            <option value="Closed">Closed</option>
+          </select>
+          <button
+            type="button"
+            onClick={handleSaveStatus}
+            disabled={updatingStatus}
+            className="rounded-lg bg-slate-900 px-4 py-2 text-sm text-white disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-700"
+          >
+            {updatingStatus ? "Saving..." : "Save Status"}
+          </button>
+          {statusMessage && (
+            <span className="text-sm text-slate-600">{statusMessage}</span>
+          )}
+        </div>
+
         <p className="mt-4 text-xs text-slate-400 break-all">{incident.id}</p>
       </div>
 
