@@ -35,6 +35,10 @@ export async function analyzeIncident(id) {
   return res.data;
 }
 
+export async function deleteIncident(id) {
+  await api.delete(`/api/incident/${id}`);
+}
+
 export async function uploadAttachment(id, file) {
   const formData = new FormData();
   formData.append("file", file);

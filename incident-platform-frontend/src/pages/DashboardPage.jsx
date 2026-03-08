@@ -1,23 +1,35 @@
 import { useEffect, useState } from "react";
-import { getIncidents } from "../api/incidents";
+import { getIncidents, deleteIncident } from "../api/incidents";
 import IncidentCard from "../components/IncidentCard";
 
 export default function DashboardPage() {
   const [incidents, setIncidents] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    async function load() {
-      try {
-        const data = await getIncidents();
-        setIncidents(data);
-      } finally {
-        setLoading(false);
-      }
+  async function loadIncidents() {
+    setLoading(true);
+    try {
+      const data = await getIncidents();
+      setIncidents(data);
+    } finally {
+      setLoading(false);
     }
+  }
 
-    load();
+  useEffect(() => {
+    loadIncidents();
   }, []);
+
+  async function handleDelete(id) {
+    if (!confirm("Delete this incident?")) return;
+
+    try {
+      await deleteIncident(id);
+      setIncidents((prev) => prev.filter((inc) => inc.id !== id));
+    } catch {
+      alert("Failed to delete incident.");
+    }
+  }
 
   return (
     <div>
@@ -35,7 +47,7 @@ export default function DashboardPage() {
       ) : (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {incidents.map((incident) => (
-            <IncidentCard key={incident.id} incident={incident} />
+            <IncidentCard key={incident.id} incident={incident} onDelete={handleDelete} />
           ))}
         </div>
       )}
