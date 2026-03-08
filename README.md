@@ -285,6 +285,13 @@ All 22 tests are pure unit tests  no database or AWS connection required.
 
 ## CI/CD Pipeline
 
+This project uses GitHub Actions to automatically deploy the API to AWS Elastic Beanstalk.
+
+**Workflow:**
+```
+GitHub → Build (.NET) → Upload to S3 → Deploy to Elastic Beanstalk
+```
+
 GitHub Actions workflow: `.github/workflows/deploy-backend.yml`
 
 **Triggers:** push to `main` with changes in `src/**` or the workflow file itself.
