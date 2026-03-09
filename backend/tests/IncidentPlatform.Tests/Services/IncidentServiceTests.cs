@@ -219,4 +219,100 @@ public class IncidentServiceTests
         result.Should().BeFalse();
         _repoMock.Verify(r => r.DeleteAsync(It.IsAny<Incident>()), Times.Never);
     }
+
+    // --- Status lifecycle tests ---
+
+    [Theory]
+    [InlineData("Open")]
+    [InlineData("In Progress")]
+    [InlineData("Resolved")]
+    [InlineData("Closed")]
+    public async Task CreateIncidentAsync_Should_Accept_Valid_Status(string status)
+    {
+        // Arrange
+        var dto = new IncidentDTO { Title = "Test", Description = "Desc", Status = status };
+
+        _repoMock
+            .Setup(r => r.AddAsync(It.IsAny<Incident>()))
+            .Returns(Task.CompletedTask);
+
+        // Act
+        var result = await _service.CreateIncidentAsync(dto);
+
+        // Assert
+        result.Status.Should().Be(status);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public async Task CreateIncidentAsync_Should_Default_To_Open_When_Status_Is_Empty(string? status)
+    {
+        // Arrange
+        var dto = new IncidentDTO { Title = "Test", Description = "Desc", Status = status! };
+
+        _repoMock
+            .Setup(r => r.AddAsync(It.IsAny<Incident>()))
+            .Returns(Task.CompletedTask);
+
+        // Act
+        var result = await _service.CreateIncidentAsync(dto);
+
+        // Assert
+        result.Status.Should().Be("Open");
+    }
+
+    [Fact]
+    public async Task CreateIncidentAsync_Should_Reject_Invalid_Status_And_Fallback_To_Open()
+    {
+        // Arrange
+        var dto = new IncidentDTO { Title = "Test", Description = "Desc", Status = "InvalidStatus" };
+
+        _repoMock
+            .Setup(r => r.AddAsync(It.IsAny<Incident>()))
+            .Returns(Task.CompletedTask);
+
+        // Act
+        var result = await _service.CreateIncidentAsync(dto);
+
+        // Assert
+        result.Status.Should().Be("Open");
+    }
+
+    [Fact]
+    public async Task UpdateIncidentAsync_Should_Update_Status_When_Valid()
+    {
+        // Arrange
+        var id = Guid.NewGuid();
+        var existing = new Incident { Id = id, Title = "T", Description = "D", Status = "Open" };
+        var dto = new IncidentDTO { Title = "T", Description = "D", Status = "Resolved" };
+
+        _repoMock.Setup(r => r.GetByIdAsync(id)).ReturnsAsync(existing);
+        _repoMock.Setup(r => r.UpdateAsync(It.IsAny<Incident>())).Returns(Task.CompletedTask);
+
+        // Act
+        var result = await _service.UpdateIncidentAsync(id, dto);
+
+        // Assert
+        result!.Status.Should().Be("Resolved");
+    }
+
+    [Fact]
+    public async Task UpdateIncidentAsync_Should_Keep_Current_Status_When_Invalid_Status_Provided()
+    {
+        // Arrange
+        var id = Guid.NewGuid();
+        var existing = new Incident { Id = id, Title = "T", Description = "D", Status = "In Progress" };
+        var dto = new IncidentDTO { Title = "T", Description = "D", Status = "Bogus" };
+
+        _repoMock.Setup(r => r.GetByIdAsync(id)).ReturnsAsync(existing);
+        _repoMock.Setup(r => r.UpdateAsync(It.IsAny<Incident>())).Returns(Task.CompletedTask);
+
+        // Act
+        var result = await _service.UpdateIncidentAsync(id, dto);
+
+        // Assert
+        result!.Status.Should().Be("In Progress");
+    }
 }

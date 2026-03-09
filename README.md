@@ -1,17 +1,23 @@
 ﻿# AI-First Incident Management Platform
 
-A full-stack incident management system built with .NET 8 (Clean Architecture) and a Next.js 14 frontend. Manages incidents across SQL Server (AWS RDS), captures structured logs in MongoDB Atlas, runs AI-driven root cause analysis, and stores file attachments in AWS S3. Deployed to AWS Elastic Beanstalk via GitHub Actions CI/CD.
+[![CI](https://github.com/robre8/AI-First-Incident-Management-Platform/actions/workflows/ci.yml/badge.svg)](https://github.com/robre8/AI-First-Incident-Management-Platform/actions/workflows/ci.yml) [![Deploy Backend](https://github.com/robre8/AI-First-Incident-Management-Platform/actions/workflows/deploy-backend.yml/badge.svg)](https://github.com/robre8/AI-First-Incident-Management-Platform/actions/workflows/deploy-backend.yml) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+Production-grade incident management system built with **AI-first engineering practices**. Full-stack C#/.NET 8 backend (Clean Architecture) with a React 19 SPA frontend deployed across AWS. Polyglot persistence (SQL Server + MongoDB), S3 file storage, AI-powered root cause analysis, and **118 automated tests** across both stacks.
+
+Built entirely through AI-assisted development using GitHub Copilot — from architecture scaffolding to unit test generation, infrastructure configuration, and CI/CD pipeline authoring.
+
+> **Live:** [incidentplatform.space](https://incidentplatform.space) | **API:** [api.incidentplatform.space/swagger](https://api.incidentplatform.space/swagger)
 
 ---
 
-## What It Does
+## Key Engineering Decisions
 
-- **Incident management**  Create, read, update, and delete incidents (SQL Server / AWS RDS via EF Core).
-- **Log ingestion**  Attach structured log entries to incidents, stored in MongoDB Atlas.
-- **AI analysis**  Analyze an incident's logs to produce severity, category, root cause, fix suggestion, and recommended tests.
-- **File attachments**  Upload files (reports, screenshots, diagnostics) to AWS S3, linked to an incident.
-- **Frontend dashboard**  Next.js 14 UI for browsing incidents, viewing logs, and triggering AI analysis.
-- **CI/CD**  GitHub Actions pipeline builds and deploys the backend to AWS Elastic Beanstalk automatically on every push to `main`.
+- **Clean Architecture with strict dependency inversion** — 5-project solution with inside-out dependency rule. Domain has zero external references; Infrastructure implements interfaces defined in Application.
+- **Polyglot persistence** — SQL Server (EF Core) for relational incident data, MongoDB Atlas for high-throughput log ingestion. Each store chosen for its strengths, not forced into one model.
+- **Graceful degradation** — MongoDB or AI failures return 503 with contextual error messages. The UI stays functional even when secondary services are down.
+- **Status lifecycle with server-side validation** — Incident status transitions are normalized and validated against an allowlist (`Open`, `In Progress`, `Resolved`, `Closed`). Invalid values throw `ArgumentException` before hitting the database.
+- **Comprehensive test coverage (118 tests)** — Backend: 47 xUnit tests (service + controller layers). Frontend: 71 Vitest + React Testing Library tests (API client, components, full-page integration). All tests use AAA pattern, behavior-driven assertions, and clean mocking — no trivial "renders without crash" tests.
+- **CI/CD with zero-downtime deployments** — GitHub Actions builds, packages, and deploys to Elastic Beanstalk on every push to `main`. Frontend auto-deploys to Vercel on merge.
 
 ---
 
@@ -19,31 +25,33 @@ A full-stack incident management system built with .NET 8 (Clean Architecture) a
 
 | Layer | Technology |
 |---|---|
-| Backend runtime | .NET 8 / ASP.NET Core Web API |
-| Relational DB | SQL Server + EF Core 8.0 (AWS RDS in production) |
+| Backend | .NET 8 / ASP.NET Core Web API (Clean Architecture) |
+| Frontend | React 19 + Vite 7 + Tailwind CSS 4 + React Router 7 |
+| Relational DB | SQL Server + EF Core 8.0 (AWS RDS) |
 | Document DB | MongoDB Atlas (MongoDB.Driver 3.7) |
 | File storage | AWS S3 (AWSSDK.S3 4.0) |
 | API docs | Swagger / Swashbuckle 6.6 |
-| Frontend | Next.js 14 + TypeScript + Tailwind CSS |
+| Backend testing | xUnit 2.5 + Moq 4.20 + FluentAssertions 8.8 + coverlet |
+| Frontend testing | Vitest 4.0 + React Testing Library + @testing-library/user-event |
 | Container | Docker + docker-compose |
-| CI/CD | GitHub Actions  AWS Elastic Beanstalk |
-| Testing | xUnit 2.5 + Moq 4.20 + FluentAssertions 8.8 |
+| CI/CD | GitHub Actions → AWS Elastic Beanstalk (backend) · Vercel (frontend) |
+| Infrastructure | AWS RDS, S3, Elastic Beanstalk, Elastic IP, MongoDB Atlas |
 
 ---
 
 ## Architecture
 
-5-project Clean Architecture  one project per layer, strict inside-out dependency rule:
+5-project Clean Architecture — one project per layer, strict inside-out dependency rule:
 
 ```
 backend/
  src/
   IncidentPlatform.Domain/
-     Entities/             # Incident, LogEntry (BSON), AIAnalysisResult, IncidentDTO
+     entities/             # Incident, LogEntry (BSON), AIAnalysisResult, IncidentDTO
 
   IncidentPlatform.Application/
      Interfaces/           # IIncidentRepository, IIncidentService, ILogRepository,
-                             # ILogService, IAIAnalysisService
+                           # ILogService, IAIAnalysisService
      Services/             # IncidentService, LogService, AIAnalysisService
 
   IncidentPlatform.Infrastructure/
@@ -52,65 +60,69 @@ backend/
 
   IncidentPlatform.API/
      Controllers/          # IncidentsController, LogController, AIController,
-                             # AttachmentController
-     Models/               # AwsSettings
+                           # AttachmentController
      Services/             # IAwsFileService, AwsFileService
 
  tests/
   IncidentPlatform.Tests/
-      Services/             # IncidentServiceTests, LogServiceTests, AIAnalysisServiceTests
-      Controllers/          # IncidentControllerTests, AIControllerTests
+     Services/             # IncidentServiceTests, LogServiceTests, AIAnalysisServiceTests
+     Controllers/          # IncidentControllerTests, LogControllerTests,
+                           # AttachmentControllerTests, AIControllerTests
 
-frontend/
- app/
-     incidents/            # Incident list + create + delete
-        [id]/             # Incident detail + logs + AI analysis
-     lib/
-         api.ts            # Typed API client
+incident-platform-frontend/
+ src/
+   api/                    # Axios client + typed API functions
+   components/             # IncidentCard, IncidentForm, LogForm, LogList,
+                           # AttachmentUpload, AIAnalysisPanel, Layout
+   pages/                  # DashboardPage, CreateIncidentPage, IncidentDetailPage
+   __tests__/              # 71 tests: api/, components/, pages/
 ```
 
-**Dependency rule:** Domain  Application  Infrastructure  API. Outer layers depend inward, never the reverse.
+**Dependency rule:** Domain → Application → Infrastructure → API. Outer layers depend inward, never the reverse.
 
 ### AI Analysis Data Flow
 
 ```
 POST /api/ai/analyze/{incidentId}
-    fetch Incident from SQL Server (EF Core)
-    fetch Logs from MongoDB Atlas
-    AIAnalysisService: keyword scoring  category + severity
-    return AIAnalysisResult { Severity, Category, RootCause, SuggestedFix, RecommendedTests }
+  → fetch Incident from SQL Server (EF Core)
+  → fetch Logs from MongoDB Atlas (graceful 503 on failure)
+  → AIAnalysisService: keyword scoring → category + severity
+  → return AIAnalysisResult { Severity, Category, RootCause, SuggestedFix, RecommendedTests }
 ```
 
 ### File Upload Data Flow
 
 ```
 POST /api/incidents/{incidentId}/attachments
-    validate IFormFile
-    AwsFileService.UploadFileAsync  AWS S3 PutObjectRequest
-    return { IncidentId, FileKey }
+  → validate IFormFile (null + empty checks)
+  → AwsFileService.UploadFileAsync → AWS S3 PutObjectRequest
+  → return { IncidentId, FileKey }
 ```
 
 ---
 
 ## API Endpoints
 
-### Incidents
+### Incidents (CRUD + Status Lifecycle)
 
 | Method | Route | Description |
 |--------|-------|-------------|
-| `GET` | `/api/incidents` | List all incidents |
-| `GET` | `/api/incidents/{id}` | Get incident by ID |
-| `POST` | `/api/incidents` | Create a new incident |
-| `PUT` | `/api/incidents/{id}` | Update an incident |
-| `DELETE` | `/api/incidents/{id}` | Delete an incident |
+| `GET` | `/api/incident` | List all incidents |
+| `GET` | `/api/incident/{id}` | Get incident by ID |
+| `POST` | `/api/incident` | Create a new incident |
+| `PUT` | `/api/incident/{id}` | Update an incident (including status) |
+| `DELETE` | `/api/incident/{id}` | Delete an incident |
 
 ```json
 // POST / PUT body
 {
   "title": "Payment service down",
-  "description": "Checkout flow failing for all users"
+  "description": "Checkout flow failing for all users",
+  "status": "Open"
 }
 ```
+
+**Status values:** `Open` → `In Progress` → `Resolved` → `Closed`. Invalid values are rejected with 400.
 
 ### Logs
 
@@ -234,16 +246,16 @@ dotnet run --project backend/src/IncidentPlatform.API
 
 API: `http://localhost:5116` | Swagger: `http://localhost:5116/swagger`
 
-### 6. Run the Frontend (optional)
+## Run the Frontend
 
 ```bash
-cd frontend
-cp .env.example .env.local   # set NEXT_PUBLIC_API_URL=http://localhost:5116
+cd incident-platform-frontend
+cp .env.example .env        # set VITE_API_URL=http://localhost:5116
 npm install
 npm run dev
 ```
 
-Frontend: `http://localhost:3000`
+Frontend: `http://localhost:5173`
 
 ---
 
@@ -266,21 +278,54 @@ The API auto-migrates the database on startup. Volumes `sqlserver_data` and `mon
 
 ---
 
-## Run Tests
+## Testing
+
+### Run All Tests
 
 ```bash
-dotnet test backend/tests/IncidentPlatform.Tests/IncidentPlatform.Tests.csproj
+# Backend (47 tests — no database or AWS connection required)
+dotnet test backend/tests/IncidentPlatform.Tests
+
+# Frontend (71 tests)
+cd incident-platform-frontend && npm test
 ```
 
-All 22 tests are pure unit tests  no database or AWS connection required.
+### Backend Test Suite (47 tests · xUnit + Moq + FluentAssertions)
 
-| File | Tests | Coverage |
-|------|-------|----------|
-| `Services/IncidentServiceTests.cs` | 7 | Full CRUD, update/delete not-found paths |
-| `Services/LogServiceTests.cs` | 4 | Field assignment, data preservation, empty list |
-| `Services/AIAnalysisServiceTests.cs` | 7 | Critical/High/Medium per category, multi-keyword scoring, empty logs |
-| `Controllers/IncidentControllerTests.cs` | 2 | NotFound, CreatedAtAction |
-| `Controllers/AIControllerTests.cs` | 2 | NotFound on missing incident, Ok with full result |
+| File | Tests | What it covers |
+|------|-------|----------------|
+| `Services/IncidentServiceTests.cs` | 14 | Full CRUD, status lifecycle (valid transitions, invalid rejection, null/empty defaults to Open) |
+| `Services/LogServiceTests.cs` | 2 | Log creation field assignment, data preservation |
+| `Services/AIAnalysisServiceTests.cs` | 8 | Critical/High/Medium per category, multi-keyword scoring, empty logs |
+| `Controllers/IncidentControllerTests.cs` | 8 | GetAll, GetById (happy + not found), Create, Update (happy + not found), Delete (happy + not found) |
+| `Controllers/LogControllerTests.cs` | 5 | GET/POST happy paths, MongoDB 503 graceful degradation, empty list |
+| `Controllers/AttachmentControllerTests.cs` | 4 | Upload success, null file, empty file, response shape validation |
+| `Controllers/AIControllerTests.cs` | 2 | Missing incident → 404, OK with full analysis result |
+
+### Frontend Test Suite (71 tests · Vitest + React Testing Library + userEvent)
+
+| File | Tests | What it covers |
+|------|-------|----------------|
+| `api/incidents.test.js` | 11 | All 9 API functions: correct URLs/payloads, FormData construction, error propagation |
+| `components/IncidentCard.test.jsx` | 10 | Render, link href, 4 status badge color variants, missing status default, delete flow, disabled state |
+| `components/IncidentForm.test.jsx` | 6 | Submit payload with status, form reset after success, loading state, native HTML validation |
+| `components/LogForm.test.jsx` | 7 | Disabled when empty, enabled with content, trimmed payload, service persistence, error display, loading |
+| `components/LogList.test.jsx` | 5 | Render logs, loading state, empty state, default loading=false |
+| `components/AttachmentUpload.test.jsx` | 8 | File selection, upload flow, success display, no-file validation, API error (3-level fallback), loading |
+| `components/AIAnalysisPanel.test.jsx` | 5 | Hint text, analyze trigger, loading, full result render, empty recommendedTests edge case |
+| `components/Layout.test.jsx` | 3 | Nav links, children rendering, correct route hrefs |
+| `pages/DashboardPage.test.jsx` | 5 | Loading → cards, empty state, delete w/ confirmation → removal, cancel skips API, delete failure alert |
+| `pages/CreateIncidentPage.test.jsx` | 3 | Render, submit → API call → navigate to detail, loading state |
+| `pages/IncidentDetailPage.test.jsx` | 8 | Load incident + logs, status update (success + failure), log creation, AI analysis (success + failure), logs 503 banner |
+
+### Testing Philosophy
+
+- **Behavior-driven, not implementation-driven** — tests assert what the user sees and experiences, not internal state or CSS classes
+- **AAA pattern (Arrange-Act-Assert)** — every test follows strict structure with clear separation
+- **`userEvent` over `fireEvent`** — simulates real user interactions (typing character-by-character, focus/blur, click sequences)
+- **Semantic queries** — `getByRole`, `getByPlaceholderText`, `getByText` instead of `data-testid` — tests break when UX breaks, not when implementation changes
+- **Error path coverage** — API failures, MongoDB down, network errors, empty states, invalid inputs
+- **Loading state verification** — buttons disabled during async operations, spinners shown, using Promises that never resolve to test intermediate states
 
 ---
 
@@ -367,12 +412,26 @@ AllowedOrigins__5=https://www.incidentplatform.space
 
 ## AI-Assisted Development
 
-This project was built using **GitHub Copilot** inside VS Code as the primary AI development assistant.
+This project was built end-to-end using **GitHub Copilot** as an AI pair-programming partner — not as an autocomplete tool, but as an active collaborator in design decisions, implementation, testing, and deployment.
 
-- **Scaffolding**  Full 5-project Clean Architecture layout, domain models, EF Core and MongoDB contexts, AWS S3 service, generated from natural language.
-- **Services & repositories**  Service interfaces, repository implementations, controller actions  generated and iterated conversationally.
-- **AI analysis logic**  The `AIAnalysisService` keyword scoring system designed collaboratively with Copilot.
-- **Unit tests**  All 22 xUnit tests (Moq + FluentAssertions) written with Copilot, including edge cases.
-- **DevOps & security**  Dockerfile, docker-compose, GitHub Actions workflow, `.gitignore` hardening, CORS policy  all authored with Copilot.
+### How AI Was Used
 
-The entire workflow was conversational  each feature described in natural language, Copilot handled code generation, validation, and commit preparation.
+| Phase | AI Contribution |
+|-------|-----------------|
+| **Architecture** | Full 5-project Clean Architecture scaffolding, interface definitions, dependency injection wiring — described in natural language, generated and iterated conversationally |
+| **Feature development** | Service implementations, repository patterns, controller actions, DTO design with status lifecycle validation — built from defined inputs/outputs |
+| **Testing (118 tests)** | AI-assisted TDD: described expected behaviors, generated test cases covering happy paths + edge cases + error scenarios. Refined prompts to improve assertion quality |
+| **Frontend** | Complete React SPA with component architecture, API client, routing, state management — all generated through conversational prompting |
+| **DevOps** | Dockerfile, docker-compose, GitHub Actions CI/CD pipeline, CORS policy, `.gitignore` hardening, Elastic Beanstalk configuration |
+| **Security** | MongoDB Atlas IP whitelisting with Elastic IP, RDS security group review, S3 bucket policy audit |
+| **Debugging** | API route mismatches, CORS issues, MongoDB connectivity, deployment failures — diagnosed and resolved through AI-guided troubleshooting |
+
+### AI-First Workflow
+
+1. **Describe intent in natural language** — "Add status lifecycle with server-side validation for Open, In Progress, Resolved, Closed"
+2. **AI generates implementation** — Service logic, DTO changes, controller updates, frontend selectors
+3. **Critical review** — Validate AI output against requirements, check edge cases, verify security implications
+4. **AI generates tests** — Behavior-driven test cases covering happy paths, error handling, and edge cases
+5. **Iterate** — Refine prompts based on test failures or missing coverage
+
+Every feature in this project went through this cycle. AI multiplied productivity; engineering judgment ensured quality.
