@@ -16,6 +16,8 @@ services:
       # AWS credentials — set in .env file (never commit real values)
       AWS_ACCESS_KEY_ID: "${AWS_ACCESS_KEY_ID}"
       AWS_SECRET_ACCESS_KEY: "${AWS_SECRET_ACCESS_KEY}"
+      AwsSettings__BucketName: "${AWS_S3_APP_BUCKET}"
+      AwsSettings__Region: "${AWS_S3_APP_REGION}"
     depends_on:
       sqlserver:
         condition: service_healthy
