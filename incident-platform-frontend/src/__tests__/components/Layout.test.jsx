@@ -1,16 +1,19 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
+import { ThemeProvider } from "../../context/ThemeContext";
 import Layout from "../../components/Layout";
 
 describe("Layout", () => {
   it("renders navigation links to Dashboard and New Incident", () => {
     render(
-      <MemoryRouter>
-        <Layout>
-          <div>child content</div>
-        </Layout>
-      </MemoryRouter>
+      <ThemeProvider>
+        <MemoryRouter>
+          <Layout>
+            <div>child content</div>
+          </Layout>
+        </MemoryRouter>
+      </ThemeProvider>
     );
 
     expect(screen.getByText("Dashboard")).toBeInTheDocument();
@@ -20,11 +23,13 @@ describe("Layout", () => {
 
   it("renders children inside the main area", () => {
     render(
-      <MemoryRouter>
-        <Layout>
-          <p>Test child</p>
-        </Layout>
-      </MemoryRouter>
+      <ThemeProvider>
+        <MemoryRouter>
+          <Layout>
+            <p>Test child</p>
+          </Layout>
+        </MemoryRouter>
+      </ThemeProvider>
     );
 
     expect(screen.getByText("Test child")).toBeInTheDocument();
@@ -32,9 +37,11 @@ describe("Layout", () => {
 
   it("links point to correct routes", () => {
     render(
-      <MemoryRouter>
-        <Layout>content</Layout>
-      </MemoryRouter>
+      <ThemeProvider>
+        <MemoryRouter>
+          <Layout>content</Layout>
+        </MemoryRouter>
+      </ThemeProvider>
     );
 
     const links = screen.getAllByRole("link");
