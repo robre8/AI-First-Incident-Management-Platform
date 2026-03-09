@@ -26,20 +26,20 @@ export default function IncidentCard({ incident, onDelete }) {
   return (
     <Link
       to={`/incidents/${incident.id}`}
-      className="relative block rounded-xl border bg-white p-4 shadow-sm transition hover:shadow-md"
+      className="relative block rounded-xl border bg-white dark:bg-slate-800 dark:border-slate-700 p-4 shadow-sm transition hover:shadow-md"
     >
       <div className="mb-2 flex items-center justify-between">
-        <h3 className="text-lg font-semibold">{incident.title}</h3>
+        <h3 className="text-lg font-semibold dark:text-slate-100">{incident.title}</h3>
         <span className={`rounded-full px-3 py-1 text-xs ${statusStyle}`}>
           {status}
         </span>
       </div>
 
-      <p className="text-sm text-slate-600">
+      <p className="text-sm text-slate-600 dark:text-slate-300">
         {incident.description}
       </p>
 
-      <p className="mt-3 text-xs text-slate-400 break-all">
+      <p className="mt-3 text-xs text-slate-400 dark:text-slate-500 break-all">
         {incident.id}
       </p>
 

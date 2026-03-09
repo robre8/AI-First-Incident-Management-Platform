@@ -96,17 +96,17 @@ export default function IncidentDetailPage() {
   }
 
   if (!incident) {
-    return <p>Loading incident...</p>;
+    return <p className="dark:text-slate-300">Loading incident...</p>;
   }
 
   return (
     <div className="space-y-6">
-      <div className="rounded-xl border bg-white p-6 shadow-sm">
-        <h1 className="text-3xl font-bold">{incident.title}</h1>
-        <p className="mt-2 text-slate-600">{incident.description}</p>
+      <div className="rounded-xl border bg-white dark:bg-slate-800 dark:border-slate-700 p-6 shadow-sm">
+        <h1 className="text-3xl font-bold dark:text-slate-100">{incident.title}</h1>
+        <p className="mt-2 text-slate-600 dark:text-slate-300">{incident.description}</p>
 
         <div className="mt-4 flex flex-wrap items-center gap-3">
-          <label className="text-sm font-medium text-slate-700">Status</label>
+          <label className="text-sm font-medium text-slate-700 dark:text-slate-200">Status</label>
           <select
             value={incident.status ?? "Open"}
             onChange={(e) =>
@@ -115,7 +115,7 @@ export default function IncidentDetailPage() {
                 status: e.target.value,
               }))
             }
-            className="rounded-lg border px-3 py-2 text-sm"
+            className="rounded-lg border dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 px-3 py-2 text-sm"
           >
             <option value="Open">Open</option>
             <option value="In Progress">In Progress</option>
@@ -126,22 +126,22 @@ export default function IncidentDetailPage() {
             type="button"
             onClick={handleSaveStatus}
             disabled={updatingStatus}
-            className="rounded-lg bg-slate-900 px-4 py-2 text-sm text-white disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-700"
+            className="rounded-lg bg-slate-900 dark:bg-slate-700 px-4 py-2 text-sm text-white disabled:cursor-not-allowed disabled:bg-slate-300 dark:disabled:bg-slate-600 disabled:text-slate-700 dark:disabled:text-slate-400"
           >
             {updatingStatus ? "Saving..." : "Save Status"}
           </button>
           {statusMessage && (
-            <span className="text-sm text-slate-600">{statusMessage}</span>
+            <span className="text-sm text-slate-600 dark:text-slate-400">{statusMessage}</span>
           )}
         </div>
 
-        <p className="mt-4 text-xs text-slate-400 break-all">{incident.id}</p>
+        <p className="mt-4 text-xs text-slate-400 dark:text-slate-500 break-all">{incident.id}</p>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
         <div className="space-y-3">
           {logsError && (
-            <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+            <div className="rounded-lg border border-amber-200 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/30 p-3 text-sm text-amber-800 dark:text-amber-200">
               {logsError}
             </div>
           )}
@@ -157,7 +157,7 @@ export default function IncidentDetailPage() {
         onAnalyze={handleAnalyze}
       />
       {analysisError && (
-        <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+        <div className="rounded-lg border border-amber-200 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/30 p-3 text-sm text-amber-800 dark:text-amber-200">
           {analysisError}
         </div>
       )}

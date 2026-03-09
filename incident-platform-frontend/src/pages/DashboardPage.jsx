@@ -34,16 +34,16 @@ export default function DashboardPage() {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-3xl font-bold">Incident Dashboard</h1>
-        <p className="text-slate-600">
+        <h1 className="text-3xl font-bold dark:text-slate-100">Incident Dashboard</h1>
+        <p className="text-slate-600 dark:text-slate-300">
           Monitor incidents, logs, attachments and AI insights.
         </p>
       </div>
 
       {loading ? (
-        <p>Loading incidents...</p>
+        <p className="dark:text-slate-300">Loading incidents...</p>
       ) : incidents.length === 0 ? (
-        <p>No incidents found.</p>
+        <p className="dark:text-slate-300">No incidents found.</p>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {incidents.map((incident) => (

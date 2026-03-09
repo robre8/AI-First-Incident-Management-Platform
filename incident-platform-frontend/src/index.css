@@ -1,5 +1,12 @@
 @import "tailwindcss";
 
+@theme {
+  --color-*: initial;
+  
+  /* Dark mode configuration */
+  --dark-mode: class;
+}
+
 html, body, #root {
   height: 100%;
 }
