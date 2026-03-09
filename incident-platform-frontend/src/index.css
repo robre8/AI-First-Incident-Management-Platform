@@ -1,11 +1,6 @@
 @import "tailwindcss";
 
-@theme {
-  --color-*: initial;
-  
-  /* Dark mode configuration */
-  --dark-mode: class;
-}
+@custom-variant dark (&:where(.dark, .dark *));
 
 html, body, #root {
   height: 100%;
