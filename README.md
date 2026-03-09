@@ -176,6 +176,14 @@ Request: `multipart/form-data`, field name `file`
 
 Swagger UI is available at `/swagger`.
 
+> **API Key:** All endpoints require an `X-API-Key` header. In Swagger, click the **Authorize** button (lock icon) and enter the key below:
+>
+> ```
+> demo-key-2026
+> ```
+>
+> The frontend includes the key automatically via the `VITE_API_KEY` environment variable.
+
 ---
 
 ## Security Considerations
@@ -184,8 +192,8 @@ This application is a **portfolio demo** intended to showcase full-stack archite
 
 | Area | Status | Notes |
 |------|--------|-------|
-| **Authentication / Login** | Not implemented | No user accounts or login flow — all endpoints are publicly accessible so recruiters can interact with the live demo without credentials. |
-| **Authorization / RBAC** | Not implemented | No role-based access control — any visitor can create, read, update, and delete incidents. |
+| **API Key authentication** | Implemented | All API endpoints require an `X-API-Key` header. Swagger UI includes an "Authorize" button to enter the key. |
+| **Authorization / RBAC** | Not implemented | No role-based access control — any authenticated visitor can create, read, update, and delete incidents. |
 | **Rate limiting** | Not implemented | API endpoints have no throttling — acceptable for a low-traffic demo. |
 | **CSRF protection** | Not implemented | Typical for SPA + API architecture with token-based auth (which would be added in production). |
 | **File upload validation** | Implemented | File type whitelist, 5 MB size limit, and filename sanitization are enforced. |
@@ -197,7 +205,7 @@ This application is a **portfolio demo** intended to showcase full-stack archite
 | **Docker** | Hardened | Container runs as a non-root user. |
 | **Secrets management** | Proper | All credentials are managed via environment variables and GitHub Secrets — nothing is hardcoded. |
 
-> **In a production system**, authentication (e.g. JWT / OAuth 2.0), role-based authorization, rate limiting, CSRF tokens, and audit logging would be implemented before any real data is handled.
+> **In a production system**, JWT / OAuth 2.0, role-based authorization, rate limiting, CSRF tokens, and audit logging would replace the static API key.
 
 ---
 

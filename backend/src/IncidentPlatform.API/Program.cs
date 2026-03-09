@@ -1,9 +1,11 @@
+using IncidentPlatform.API.Infrastructure;
 using IncidentPlatform.API.Services;
 using IncidentPlatform.Application.Interfaces;
 using IncidentPlatform.Application.Services;
 using IncidentPlatform.Infrastructure.Data;
 using IncidentPlatform.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -43,7 +45,26 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.AddSecurityDefinition("ApiKey", new OpenApiSecurityScheme
+    {
+        Name = "X-API-Key",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.ApiKey,
+        Description = "API key required to access endpoints. Enter your key below."
+    });
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "ApiKey" }
+            },
+            Array.Empty<string>()
+        }
+    });
+});
 
 var app = builder.Build();
 
@@ -66,6 +87,8 @@ app.Use(async (context, next) =>
     context.Response.Headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
     await next();
 });
+
+app.UseMiddleware<ApiKeyMiddleware>();
 
 app.UseCors("FrontendPolicy");
 app.MapGet("/", () => "AI Incident Platform API is running.");
