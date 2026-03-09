@@ -1,6 +1,0 @@
-@IncidentPlatform.API_HostAddress = http://localhost:5116
-
-GET {{IncidentPlatform.API_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
