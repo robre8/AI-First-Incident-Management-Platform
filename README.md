@@ -1,6 +1,6 @@
 ﻿# AI-First Incident Management Platform
 
-[![CI](https://github.com/robre8/AI-First-Incident-Management-Platform/actions/workflows/ci.yml/badge.svg)](https://github.com/robre8/AI-First-Incident-Management-Platform/actions/workflows/ci.yml) [![Deploy Backend](https://github.com/robre8/AI-First-Incident-Management-Platform/actions/workflows/deploy-backend.yml/badge.svg)](https://github.com/robre8/AI-First-Incident-Management-Platform/actions/workflows/deploy-backend.yml) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![CI](https://github.com/robre8/AI-Incident-Management-Platform/actions/workflows/ci.yml/badge.svg)](https://github.com/robre8/AI-Incident-Management-Platform/actions/workflows/ci.yml) [![Deploy Backend](https://github.com/robre8/AI-Incident-Management-Platform/actions/workflows/deploy-backend.yml/badge.svg)](https://github.com/robre8/AI-Incident-Management-Platform/actions/workflows/deploy-backend.yml) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 Production-grade incident management system built with **AI-first engineering practices**. Full-stack C#/.NET 8 backend (Clean Architecture) with a React 19 SPA frontend deployed across AWS. Polyglot persistence (SQL Server + MongoDB), S3 file storage, AI-powered root cause analysis, and **118 automated tests** across both stacks.
 
@@ -188,8 +188,8 @@ Swagger UI is always available at `/swagger`.
 ### 1. Clone the repo
 
 ```bash
-git clone https://github.com/robre8/AI-First-Incident-Management-Platform.git
-cd AI-First-Incident-Management-Platform
+git clone https://github.com/robre8/AI-Incident-Management-Platform.git
+cd AI-Incident-Management-Platform
 ```
 
 ### 2. Configure credentials
