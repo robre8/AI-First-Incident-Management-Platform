@@ -17,6 +17,7 @@ export default function IncidentDetailPage() {
   const { id } = useParams();
 
   const [incident, setIncident] = useState(null);
+  const [incidentError, setIncidentError] = useState(null);
   const [logs, setLogs] = useState([]);
   const [logsError, setLogsError] = useState(null);
   const [loadingLogs, setLoadingLogs] = useState(true);
@@ -41,8 +42,19 @@ export default function IncidentDetailPage() {
 
   useEffect(() => {
     async function load() {
-      const incidentData = await getIncidentById(id);
-      setIncident(incidentData);
+      try {
+        const incidentData = await getIncidentById(id);
+        setIncident(incidentData);
+        setIncidentError(null);
+      } catch (err) {
+        const status = err?.response?.status;
+        if (status === 404) {
+          setIncidentError("Incident not found.");
+        } else {
+          setIncidentError("Failed to load incident. Please try again later.");
+        }
+        return;
+      }
 
       await loadLogs();
     }
@@ -93,6 +105,14 @@ export default function IncidentDetailPage() {
 
   async function handleUpload(file) {
     return uploadAttachment(id, file);
+  }
+
+  if (incidentError) {
+    return (
+      <div className="rounded-xl border border-rose-500/20 bg-rose-500/10 p-6 text-center">
+        <p className="text-sm font-medium text-rose-600 dark:text-rose-400">{incidentError}</p>
+      </div>
+    );
   }
 
   if (!incident) {
